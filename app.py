@@ -24,9 +24,17 @@ def registro():
     # Esta línea le dice a Flask que busque el archivo físico en /templates
     return render_template('registro.html')
 
+
+
 @app.route('/proyectos')
 def proyectos():
-    return render_template('proyectos.html')
+    db = get_db_connection()
+    # Traemos todos los proyectos de la tabla
+    proyectos_db = db.execute('SELECT * FROM proyectos').fetchall()
+    db.close()
+    # Enviamos la lista al HTML
+    return render_template('proyectos.html', proyectos=proyectos_db)
+    
 
 @app.route('/sube')
 def sube():
@@ -105,7 +113,51 @@ def logout():
     session.pop('usuario', None)
     # Lo redirigimos a la página de inicio
     return redirect(url_for('index'))
+
+
+import os
+from werkzeug.utils import secure_filename
+
+# Configuración de carpetas para archivos
+UPLOAD_FOLDER = 'static/uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+@app.route('/subir_proyecto', methods=['POST'])
+def subir_proyecto():
+    if request.method == 'POST':
+        # Capturamos los datos del formulario
+        nombre = request.form['nombre']
+        descripcion = request.form['descripcion']
+        categoria = request.form['categoria']
+        meta = request.form['meta']
+        fecha_limite = request.form['fecha_limite']
+        video_url = request.form.get('video', '')
+
+        # Manejo de archivos (Imagen y PDF)
+        foto = request.files['imagen']
+        archivo = request.files['archivo']
+
+        foto_filename = secure_filename(foto.filename)
+        archivo_filename = secure_filename(archivo.filename)
+
+        # Guardamos los archivos físicamente
+        foto.save(os.path.join(app.config['UPLOAD_FOLDER'], foto_filename))
+        archivo.save(os.path.join(app.config['UPLOAD_FOLDER'], archivo_filename))
+
+        # Guardamos la información en la base de datos
+        db = get_db_connection()
+        cursor = db.cursor()
+        cursor.execute('''
+            INSERT INTO proyectos (nombre, descripcion, categoria, meta, fecha_limite, archivo_ruta, imagen_ruta, video_url)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (nombre, descripcion, categoria, meta, fecha_limite, archivo_filename, foto_filename, video_url))
         
+        db.commit()
+        db.close()
+
+        return "¡Proyecto publicado con éxito! 🎉 <a href='/proyectos'>Ver proyectos</a>"
+        
+
 
         
         

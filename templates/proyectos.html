@@ -47,123 +47,60 @@
       </p>
 
       <ul class="project-list">
-        <li>
-          <h3>🌐 Plataforma de Crowdfunding para Proyectos Educativos</h3>
-          <p>
-            Este proyecto busca crear una plataforma web donde estudiantes de la
-            UNAD puedan publicar sus proyectos de grado y recibir apoyo
-            financiero de la comunidad. Incluye sistema de donaciones,
-            comentarios, calificaciones y seguimiento de avances. Las
-            tecnologías a usar son Python con Flask, MySQL, HTML5, CSS3 y
-            JavaScript.
-          </p>
-          <div class="progress-section" style="margin-top: 1rem">
-            <div class="progress-bar">
-              <div class="progress" style="width: 45%">45%</div>
-            </div>
-            <div class="stars">
-              <span class="filled">★</span>
-              <span class="filled">★</span>
-              <span class="filled">★</span>
-              <span class="filled">★</span>
-              <span>☆</span>
-            </div>
-          </div>
-          <p style="margin-top: 0.5rem">
-            <strong>Meta:</strong> $3,000,000 | <strong>Recaudado:</strong>
-            $1,350,000
-          </p>
-        </li>
+  {% for proyecto in proyectos %}
+  <li style="display: flex; gap: 20px; align-items: stretch; margin-bottom: 2rem; border-bottom: 1px solid #eee; padding-bottom: 1.5rem; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    
+    <div class="project-image" style="flex: 1; max-width: 280px;">
+      <img src="{{ url_for('static', filename='uploads/' + proyecto['imagen_ruta']) }}" 
+           alt="{{ proyecto['nombre'] }}" 
+           style="width: 100%; border-radius: 8px; height: 100%; min-height: 180px; object-fit: cover;">
+    </div>
 
-        <li>
-          <h3>☀️ Sistema de Energía Solar para la Universidad</h3>
-          <p>
-            Proyecto de ingeniería eléctrica que propone instalar paneles
-            solares en los edificios de la universidad para reducir el consumo
-            de energía convencional. El sistema incluye baterías de
-            almacenamiento y un dashboard para monitorear la generación y
-            consumo en tiempo real. Se estima un ahorro del 40% en costos
-            energéticos.
-          </p>
-          <div class="progress-section" style="margin-top: 1rem">
-            <div class="progress-bar">
-              <div class="progress" style="width: 65%">65%</div>
-            </div>
-            <div class="stars">
-              <span class="filled">★</span>
-              <span class="filled">★</span>
-              <span class="filled">★</span>
-              <span class="filled">★</span>
-              <span class="filled">★</span>
-            </div>
+    <div class="project-info" style="flex: 2; display: flex; flex-direction: column; justify-content: space-between;">
+      
+      <div>
+        <h3 style="margin-top: 0; color: #333;">🌐 {{ proyecto['nombre'] }}</h3>
+        <p style="color: #555; line-height: 1.5; font-size: 0.95rem;">{{ proyecto['descripcion'] }}</p>
+        
+        <div class="progress-section" style="margin-top: 1rem">
+          <div class="progress-bar" style="background: #e9ecef; border-radius: 10px; height: 12px;">
+            <div class="progress" style="width: 0%; background: #4a4ae1; color: white; font-size: 10px; text-align: center; border-radius: 10px;">0%</div>
           </div>
-          <p style="margin-top: 0.5rem">
-            <strong>Meta:</strong> $8,000,000 | <strong>Recaudado:</strong>
-            $5,200,000
-          </p>
-        </li>
+        </div>
 
-        <li>
-          <h3>🧠 App de Salud Mental para Jóvenes</h3>
-          <p>
-            Aplicación móvil de psicología que ofrece herramientas de
-            autocuidado emocional, meditaciones guiadas, ejercicios de
-            respiración y un chatbot con IA que detecta señales de ansiedad o
-            depresión. La app conecta estudiantes con psicólogos de la
-            universidad de forma confidencial y gratuita.
-          </p>
-          <div class="progress-section" style="margin-top: 1rem">
-            <div class="progress-bar">
-              <div class="progress" style="width: 20%">20%</div>
-            </div>
-            <div class="stars">
-              <span class="filled">★</span>
-              <span class="filled">★</span>
-              <span class="filled">★</span>
-              <span class="filled">★</span>
-              <span>☆</span>
-            </div>
-          </div>
-          <p style="margin-top: 0.5rem">
-            <strong>Meta:</strong> $4,500,000 | <strong>Recaudado:</strong>
-            $900,000
-          </p>
-        </li>
+        <p style="margin-top: 0.8rem; font-size: 0.85rem; color: #666;">
+          <strong>Meta:</strong> <span style="color: #28a745;">${{ "{:,.0f}".format(proyecto['meta']) }} COP</span> | 
+          <strong>Categoría:</strong> {{ proyecto['categoria']|capitalize }}
+        </p>
+      </div>
 
-        <li>
-          <h3>🔬 Laboratorio Móvil de Ciencias</h3>
-          <p>
-            Proyecto de educación que consiste en un laboratorio portátil
-            equipado con microscopios, reactivos, materiales de experimentación
-            y tablets con simulaciones interactivas. El laboratorio viaja a
-            colegios rurales donde los estudiantes no tienen acceso a este tipo
-            de recursos, promoviendo vocaciones científicas.
-          </p>
-          <div class="progress-section" style="margin-top: 1rem">
-            <div class="progress-bar">
-              <div class="progress" style="width: 80%">80%</div>
-            </div>
-            <div class="stars">
-              <span class="filled">★</span>
-              <span class="filled">★</span>
-              <span class="filled">★</span>
-              <span class="filled">★</span>
-              <span class="filled">★</span>
-            </div>
-          </div>
-          <p style="margin-top: 0.5rem">
-            <strong>Meta:</strong> $6,000,000 | <strong>Recaudado:</strong>
-            $4,800,000
-          </p>
-        </li>
-      </ul>
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 15px;">
+        <a href="{{ url_for('static', filename='uploads/' + proyecto['archivo_ruta']) }}" 
+           target="_blank" class="btn-user" style="text-decoration: none; padding: 8px 16px; font-size: 0.85rem; border-radius: 5px;">
+           📄 Ver Documento
+        </a>
+
+        <div class="stars" style="color: #ffca08; font-size: 1.1rem; text-align: right;">
+          <span class="filled">★</span><span class="filled">★</span><span class="filled">★</span><span class="filled">★</span><span style="color: #ccc;">☆</span>
+          <div style="font-size: 0.65rem; color: #999; margin-top: 2px;">Valoración</div>
+        </div>
+      </div>
+
+    </div>
+  </li>
+  {% else %}
+  <li style="text-align: center; list-style: none; padding: 40px; color: #888;">
+    <p>Aún no hay proyectos publicados.</p>
+  </li>
+  {% endfor %}
+</ul>
     </div>
 
     <footer>
-      &copy; 2025 FOUNAD - Plataforma de Crowdfunding Educativo | Desarrollado
+      &copy; 2026 FOUNAD - Plataforma de Crowdfunding Educativo | Desarrollado
       por Daniel Grisales
     </footer>
 
-    <script src="founad.js"></script>
+    <script src="{{ url_for('static', filename='js/founad.js') }}"></script>
   </body>
 </html>
