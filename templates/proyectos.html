@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Proyectos de Grado - FOUNAD</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/founad.css') }}">
+  </head>
+  <body>
+    <header>
+    <div class="header-content">
+        <div class="header-left"></div>
+
+        <div class="title-container">
+            <div class="logo-container">
+                <img src="{{ url_for('static', filename='img/logo-universidad.png') }}" alt="Logo Universidad">
+            </div>
+            <h1>FOUNAD</h1>
+            <p>Financia los proyectos de grado que transforman el futuro</p>
+        </div>
+
+        <div class="user-actions">
+            {% if session.usuario %}
+                <span class="btn-user">Hola, {{ session.usuario }}</span>
+                <a href="/logout" class="btn-user">Cerrar sesión</a>
+            {% else %}
+                <a href="/login" class="btn-user">Iniciar Sesión</a>
+                <a href="/registro" class="btn-user">Registrarse</a>
+            {% endif %}
+        </div>
+    </div> <nav class="navbar">
+        <div class="nav-links">
+            <a href="/">Inicio</a>
+            <a href="/proyectos">Proyectos</a>
+            <a href="/sube">Publicar</a>
+            <a href="/contacto">Contacto</a>
+        </div>
+    </nav>
+</header>
+
+    <div class="container">
+      <h2>Proyectos Disponibles para Apoyar</h2>
+      <p style="color: #666; margin-bottom: 2rem">
+        Acá podés explorar los proyectos de grado que están buscando
+        financiamiento. Cada uno tiene su meta y vas viendo el progreso en
+        tiempo real.
+      </p>
+
+      <ul class="project-list">
+        <li>
+          <h3>🌐 Plataforma de Crowdfunding para Proyectos Educativos</h3>
+          <p>
+            Este proyecto busca crear una plataforma web donde estudiantes de la
+            UNAD puedan publicar sus proyectos de grado y recibir apoyo
+            financiero de la comunidad. Incluye sistema de donaciones,
+            comentarios, calificaciones y seguimiento de avances. Las
+            tecnologías a usar son Python con Flask, MySQL, HTML5, CSS3 y
+            JavaScript.
+          </p>
+          <div class="progress-section" style="margin-top: 1rem">
+            <div class="progress-bar">
+              <div class="progress" style="width: 45%">45%</div>
+            </div>
+            <div class="stars">
+              <span class="filled">★</span>
+              <span class="filled">★</span>
+              <span class="filled">★</span>
+              <span class="filled">★</span>
+              <span>☆</span>
+            </div>
+          </div>
+          <p style="margin-top: 0.5rem">
+            <strong>Meta:</strong> $3,000,000 | <strong>Recaudado:</strong>
+            $1,350,000
+          </p>
+        </li>
+
+        <li>
+          <h3>☀️ Sistema de Energía Solar para la Universidad</h3>
+          <p>
+            Proyecto de ingeniería eléctrica que propone instalar paneles
+            solares en los edificios de la universidad para reducir el consumo
+            de energía convencional. El sistema incluye baterías de
+            almacenamiento y un dashboard para monitorear la generación y
+            consumo en tiempo real. Se estima un ahorro del 40% en costos
+            energéticos.
+          </p>
+          <div class="progress-section" style="margin-top: 1rem">
+            <div class="progress-bar">
+              <div class="progress" style="width: 65%">65%</div>
+            </div>
+            <div class="stars">
+              <span class="filled">★</span>
+              <span class="filled">★</span>
+              <span class="filled">★</span>
+              <span class="filled">★</span>
+              <span class="filled">★</span>
+            </div>
+          </div>
+          <p style="margin-top: 0.5rem">
+            <strong>Meta:</strong> $8,000,000 | <strong>Recaudado:</strong>
+            $5,200,000
+          </p>
+        </li>
+
+        <li>
+          <h3>🧠 App de Salud Mental para Jóvenes</h3>
+          <p>
+            Aplicación móvil de psicología que ofrece herramientas de
+            autocuidado emocional, meditaciones guiadas, ejercicios de
+            respiración y un chatbot con IA que detecta señales de ansiedad o
+            depresión. La app conecta estudiantes con psicólogos de la
+            universidad de forma confidencial y gratuita.
+          </p>
+          <div class="progress-section" style="margin-top: 1rem">
+            <div class="progress-bar">
+              <div class="progress" style="width: 20%">20%</div>
+            </div>
+            <div class="stars">
+              <span class="filled">★</span>
+              <span class="filled">★</span>
+              <span class="filled">★</span>
+              <span class="filled">★</span>
+              <span>☆</span>
+            </div>
+          </div>
+          <p style="margin-top: 0.5rem">
+            <strong>Meta:</strong> $4,500,000 | <strong>Recaudado:</strong>
+            $900,000
+          </p>
+        </li>
+
+        <li>
+          <h3>🔬 Laboratorio Móvil de Ciencias</h3>
+          <p>
+            Proyecto de educación que consiste en un laboratorio portátil
+            equipado con microscopios, reactivos, materiales de experimentación
+            y tablets con simulaciones interactivas. El laboratorio viaja a
+            colegios rurales donde los estudiantes no tienen acceso a este tipo
+            de recursos, promoviendo vocaciones científicas.
+          </p>
+          <div class="progress-section" style="margin-top: 1rem">
+            <div class="progress-bar">
+              <div class="progress" style="width: 80%">80%</div>
+            </div>
+            <div class="stars">
+              <span class="filled">★</span>
+              <span class="filled">★</span>
+              <span class="filled">★</span>
+              <span class="filled">★</span>
+              <span class="filled">★</span>
+            </div>
+          </div>
+          <p style="margin-top: 0.5rem">
+            <strong>Meta:</strong> $6,000,000 | <strong>Recaudado:</strong>
+            $4,800,000
+          </p>
+        </li>
+      </ul>
+    </div>
+
+    <footer>
+      &copy; 2025 FOUNAD - Plataforma de Crowdfunding Educativo | Desarrollado
+      por Daniel Grisales
+    </footer>
+
+    <script src="founad.js"></script>
+  </body>
+</html>

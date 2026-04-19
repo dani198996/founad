@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contacto - FOUNAD</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/founad.css') }}">
+  </head>
+  <body>
+    <header>
+    <div class="header-content">
+        <div class="header-left"></div>
+
+        <div class="title-container">
+            <div class="logo-container">
+                <img src="{{ url_for('static', filename='img/logo-universidad.png') }}" alt="Logo Universidad">
+            </div>
+            <h1>FOUNAD</h1>
+            <p>Financia los proyectos de grado que transforman el futuro</p>
+        </div>
+
+        <div class="user-actions">
+            {% if session.usuario %}
+                <span class="btn-user">Hola, {{ session.usuario }}</span>
+                <a href="/logout" class="btn-user">Cerrar sesión</a>
+            {% else %}
+                <a href="/login" class="btn-user">Iniciar Sesión</a>
+                <a href="/registro" class="btn-user">Registrarse</a>
+            {% endif %}
+        </div>
+    </div> <nav class="navbar">
+        <div class="nav-links">
+            <a href="/">Inicio</a>
+            <a href="/proyectos">Proyectos</a>
+            <a href="/sube">Publicar</a>
+            <a href="/contacto">Contacto</a>
+        </div>
+    </nav>
+</header>
+
+    <div class="container">
+      <h2>Contacto</h2>
+      <p style="color: #666; margin-bottom: 2rem">
+        ¿Tenés alguna duda o sugerencia sobre FOUNAD?
+      </p>
+
+      <form id="contactForm" class="upload-form">
+        <label for="nombre">Tu Nombre: *</label>
+        <input
+          type="text"
+          id="nombre"
+          name="nombre"
+          placeholder="Nombre completo"
+          required
+        />
+
+        <label for="email">Tu Correo Electrónico: *</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="correo@ejemplo.com"
+          required
+        />
+
+        <label for="asunto">Asunto: *</label>
+        <select id="asunto" name="asunto" required>
+          <option value="">-- Seleccioná un asunto --</option>
+          <option value="consulta">Consulta General</option>
+          <option value="problema">Reportar un Problema</option>
+          <option value="sugerencia">Sugerencia o Feedback</option>
+          <option value="proyecto">Pregunta sobre mi Proyecto</option>
+          <option value="donacion">Pregunta sobre Donaciones</option>
+          <option value="otro">Otro</option>
+        </select>
+
+        <label for="mensaje">Tu Mensaje: *</label>
+        <textarea
+          id="mensaje"
+          name="mensaje"
+          rows="6"
+          placeholder="Escribí acá tu mensaje..."
+          required
+        ></textarea>
+
+        <button type="submit" class="btn">Enviar Mensaje</button>
+      </form>
+
+      <div style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid #e0e0e0">
+        <h3 style="color: #4635b7">Información del Proyecto</h3>
+        <p style="line-height: 1.8">
+          <strong>Desarrollador:</strong> Daniel Arley Grisales López<br />
+          <strong>Universidad:</strong> UNAD - Universidad Nacional Abierta y a
+          Distancia<br />
+          <strong>Programa:</strong> Ingeniería de Sistemas<br />
+          <strong>Proyecto:</strong> FOUNAD - Plataforma de Crowdfunding para
+          Proyectos de Grado<br />
+          <strong>Año:</strong> 2026
+        </p>
+
+        <p style="color: #666; margin-top: 1.5rem">
+          FOUNAD es un proyecto de grado que busca facilitar el financiamiento
+          colaborativo de proyectos académicos en la UNAD, conectando
+          estudiantes con donantes interesados en apoyar la innovación y el
+          desarrollo educativo.
+        </p>
+      </div>
+    </div>
+
+    <footer>
+      &copy; 2025 FOUNAD - Plataforma de Crowdfunding Educativo | Desarrollado
+      por Daniel Grisales
+    </footer>
+
+    <script src="founad.js"></script>
+  </body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Publica tu Proyecto - FOUNAD</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/founad.css') }}">
+  </head>
+  <body>
+    <header>
+    <div class="header-content">
+        <div class="header-left"></div>
+
+        <div class="title-container">
+            <div class="logo-container">
+                <img src="{{ url_for('static', filename='img/logo-universidad.png') }}" alt="Logo Universidad">
+            </div>
+            <h1>FOUNAD</h1>
+            <p>Financia los proyectos de grado que transforman el futuro</p>
+        </div>
+
+        <div class="user-actions">
+            {% if session.usuario %}
+                <span class="btn-user">Hola, {{ session.usuario }}</span>
+                <a href="/logout" class="btn-user">Cerrar sesión</a>
+            {% else %}
+                <a href="/login" class="btn-user">Iniciar Sesión</a>
+                <a href="/registro" class="btn-user">Registrarse</a>
+            {% endif %}
+        </div>
+    </div> <nav class="navbar">
+        <div class="nav-links">
+            <a href="/">Inicio</a>
+            <a href="/proyectos">Proyectos</a>
+            <a href="/sube">Publicar</a>
+            <a href="/contacto">Contacto</a>
+        </div>
+    </nav>
+</header>
+
+    <div class="container">
+      <h2>Publica tu Proyecto de Grado</h2>
+      <p style="color: #666; margin-bottom: 2rem">
+        Acá podés subir tu proyecto para que la comunidad lo conozca y lo
+        apoye. Llená todos los campos con la mayor información posible para que
+        los donantes entiendan tu propuesta.
+      </p>
+
+      <form
+        id="uploadForm"
+        action="/subir_proyecto"
+        method="post"
+        enctype="multipart/form-data"
+        class="upload-form"
+      >
+        <label for="nombre">Nombre del Proyecto: *</label>
+        <input
+          type="text"
+          id="nombre"
+          name="nombre"
+          placeholder="Ej: Plataforma de Educación Virtual"
+          required
+        />
+
+        <label for="descripcion">Descripción Completa del Proyecto: *</label>
+        <textarea
+          id="descripcion"
+          name="descripcion"
+          rows="6"
+          placeholder="Explicá de qué trata tu proyecto, qué problema soluciona, cómo lo vas a desarrollar y qué impacto va a tener..."
+          required
+        ></textarea>
+
+        <label for="categoria">Categoría: *</label>
+        <select id="categoria" name="categoria" required>
+          <option value="">-- Seleccioná una categoría --</option>
+          <option value="tecnologia">Tecnología e Ingeniería</option>
+          <option value="educacion">Educación</option>
+          <option value="salud">Salud y Bienestar</option>
+          <option value="medioambiente">Medio Ambiente</option>
+          <option value="social">Impacto Social</option>
+          <option value="arte">Arte y Cultura</option>
+          <option value="otro">Otro</option>
+        </select>
+
+        <label for="meta">Meta de Financiamiento (COP): *</label>
+        <input
+          type="number"
+          id="meta"
+          name="meta"
+          placeholder="Ej: 5000000"
+          min="100000"
+          required
+        />
+        <small style="color: #666">El monto mínimo es $100,000 COP</small>
+
+        <label for="fecha_limite">Fecha Límite para Recaudar: *</label>
+        <input type="date" id="fecha_limite" name="fecha_limite" required />
+
+        <label for="archivo">
+          Documento del Proyecto (PDF o Word): *
+        </label>
+        <input
+          type="file"
+          id="archivo"
+          name="archivo"
+          accept=".pdf,.doc,.docx"
+          required
+        />
+        <small style="color: #666">
+          Subí un documento con más detalles de tu proyecto
+        </small>
+
+        <label for="imagen">Imagen Principal del Proyecto: *</label>
+        <input
+          type="file"
+          id="imagen"
+          name="imagen"
+          accept="image/jpeg,image/png,image/jpg"
+          required
+        />
+        <small style="color: #666">
+          Formato JPG o PNG, tamaño máximo 5MB
+        </small>
+
+        <label for="video">Video Explicativo (Opcional):</label>
+        <input
+          type="url"
+          id="video"
+          name="video"
+          placeholder="URL de YouTube (ej: https://youtube.com/watch?v=...)"
+        />
+
+        <button type="submit" class="btn">Publicar Proyecto</button>
+        <small style="color: #666; text-align: center; margin-top: 0.5rem">
+          * Campos obligatorios
+        </small>
+      </form>
+    </div>
+
+    <footer>
+      &copy; 2025 FOUNAD - Plataforma de Crowdfunding Educativo | Desarrollado
+      por Daniel Grisales
+    </footer>
+
+    <script src="founad.js"></script>
+  </body>
+</html>
