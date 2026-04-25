@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+venv/
+instance/
+.env
+# Opcional: founad.db (si quieres que cada quien empiece con una DB limpia)

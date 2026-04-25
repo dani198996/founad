@@ -24,16 +24,47 @@ def registro():
     # Esta línea le dice a Flask que busque el archivo físico en /templates
     return render_template('registro.html')
 
-
-
 @app.route('/proyectos')
 def proyectos():
+    # Usamos la función de conexión que ya tienes definida arriba
     db = get_db_connection()
-    # Traemos todos los proyectos de la tabla
-    proyectos_db = db.execute('SELECT * FROM proyectos').fetchall()
+    cursor = db.cursor()
+    
+    # 1. Traemos los proyectos con su acumulado de donaciones
+    query = '''
+    SELECT p.*, IFNULL(SUM(d.monto), 0) as acumulado
+    FROM proyectos p
+    LEFT JOIN donaciones d ON p.id = d.id_proyecto
+    GROUP BY p.id
+    '''
+    proyectos_data = cursor.execute(query).fetchall()
+
+    # 2. PROCESAMIENTO CRÍTICO: Creamos la lista que espera el HTML
+    lista_final = []
+    for p in proyectos_data:
+        # Convertimos el objeto Row a un diccionario para poder agregarle datos
+        proyecto_dict = dict(p)
+        
+        # Buscamos los avances específicos de este proyecto
+        avances = cursor.execute('''
+            SELECT mensaje, fecha 
+            FROM avances 
+            WHERE id_proyecto = ? 
+            ORDER BY fecha DESC
+        ''', (p['id'],)).fetchall()
+        
+        # Guardamos la lista de avances dentro del diccionario del proyecto
+        # Esto es lo que el HTML lee como proyecto['lista_avances']
+        proyecto_dict['lista_avances'] = avances
+        
+        lista_final.append(proyecto_dict)
+
     db.close()
-    # Enviamos la lista al HTML
-    return render_template('proyectos.html', proyectos=proyectos_db)
+    
+    # IMPORTANTE: Enviamos lista_final al template
+    return render_template('proyectos.html', proyectos=lista_final)
+    db.close()
+    return render_template('proyectos.html', proyectos=proyectos_lista)
     
 
 @app.route('/sube')
@@ -158,7 +189,51 @@ def subir_proyecto():
         return "¡Proyecto publicado con éxito! 🎉 <a href='/proyectos'>Ver proyectos</a>"
         
 
+@app.route('/donar/<int:proyecto_id>', methods=['POST'])
+def donar(proyecto_id):
+    # 1. Verificar si el usuario inició sesión
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+    
+    monto = request.form.get('monto')
+    usuario_nombre = session['usuario']
 
+    try:
+        db = sqlite3.connect('founad.db')
+        cursor = db.cursor()
+        
+        # 2. Buscamos el ID del usuario que está logueado
+        cursor.execute('SELECT id FROM usuarios WHERE nombre = ?', (usuario_nombre,))
+        usuario = cursor.fetchone()
+        
+        if usuario:
+            # 3. Insertamos la donación en la tabla
+            cursor.execute('INSERT INTO donaciones (id_proyecto, id_usuario, monto) VALUES (?, ?, ?)',
+                           (proyecto_id, usuario[0], monto))
+            db.commit()
+            print(f"✅ ¡Éxito! Donación de {monto} para el proyecto ID {proyecto_id}")
+        
+        db.close()
+    except Exception as e:
+        print(f"❌ Error en la base de datos: {e}")
+    
+    # 4. Volvemos a la lista de proyectos para ver el cambio
+    return redirect(url_for('proyectos'))
+
+
+@app.route('/publicar_avance/<int:proyecto_id>', methods=['POST'])
+def publicar_avance(proyecto_id):
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+    
+    mensaje = request.form.get('mensaje')
+    
+    db = sqlite3.connect('founad.db')
+    db.execute('INSERT INTO avances (id_proyecto, mensaje) VALUES (?, ?)', (proyecto_id, mensaje))
+    db.commit()
+    db.close()
+    
+    return redirect(url_for('proyectos'))
         
         
         

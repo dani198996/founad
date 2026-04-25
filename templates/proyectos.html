@@ -1,106 +1,123 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Proyectos de Grado - FOUNAD</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/founad.css') }}">
-  </head>
-  <body>
+</head>
+<body>
     <header>
-    <div class="header-content">
-        <div class="header-left"></div>
-
-        <div class="title-container">
-            <div class="logo-container">
-                <img src="{{ url_for('static', filename='img/logo-universidad.png') }}" alt="Logo Universidad">
+        <div class="header-content">
+            <div class="header-left"></div>
+            <div class="title-container">
+                <div class="logo-container">
+                    <img src="{{ url_for('static', filename='img/logo-universidad.png') }}" alt="Logo Universidad">
+                </div>
+                <h1>FOUNAD</h1>
+                <p>Financia los proyectos de grado que transforman el futuro</p>
             </div>
-            <h1>FOUNAD</h1>
-            <p>Financia los proyectos de grado que transforman el futuro</p>
-        </div>
-
-        <div class="user-actions">
-            {% if session.usuario %}
-                <span class="btn-user">Hola, {{ session.usuario }}</span>
-                <a href="/logout" class="btn-user">Cerrar sesión</a>
-            {% else %}
-                <a href="/login" class="btn-user">Iniciar Sesión</a>
-                <a href="/registro" class="btn-user">Registrarse</a>
-            {% endif %}
-        </div>
-    </div> <nav class="navbar">
-        <div class="nav-links">
-            <a href="/">Inicio</a>
-            <a href="/proyectos">Proyectos</a>
-            <a href="/sube">Publicar</a>
-            <a href="/contacto">Contacto</a>
-        </div>
-    </nav>
-</header>
+            <div class="user-actions">
+                {% if session.usuario %}
+                    <span class="btn-user">Hola, {{ session.usuario }}</span>
+                    <a href="/logout" class="btn-user">Cerrar sesión</a>
+                {% else %}
+                    <a href="/login" class="btn-user">Iniciar Sesión</a>
+                    <a href="/registro" class="btn-user">Registrarse</a>
+                {% endif %}
+            </div>
+        </div> 
+        <nav class="navbar">
+            <div class="nav-links">
+                <a href="/">Inicio</a>
+                <a href="/proyectos">Proyectos</a>
+                <a href="/sube">Publicar</a>
+                <a href="/contacto">Contacto</a>
+            </div>
+        </nav>
+    </header>
 
     <div class="container">
-      <h2>Proyectos Disponibles para Apoyar</h2>
-      <p style="color: #666; margin-bottom: 2rem">
-        Acá podés explorar los proyectos de grado que están buscando
-        financiamiento. Cada uno tiene su meta y vas viendo el progreso en
-        tiempo real.
-      </p>
-
-      <ul class="project-list">
-  {% for proyecto in proyectos %}
-  <li style="display: flex; gap: 20px; align-items: stretch; margin-bottom: 2rem; border-bottom: 1px solid #eee; padding-bottom: 1.5rem; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-    
-    <div class="project-image" style="flex: 1; max-width: 280px;">
-      <img src="{{ url_for('static', filename='uploads/' + proyecto['imagen_ruta']) }}" 
-           alt="{{ proyecto['nombre'] }}" 
-           style="width: 100%; border-radius: 8px; height: 100%; min-height: 180px; object-fit: cover;">
-    </div>
-
-    <div class="project-info" style="flex: 2; display: flex; flex-direction: column; justify-content: space-between;">
-      
-      <div>
-        <h3 style="margin-top: 0; color: #333;">🌐 {{ proyecto['nombre'] }}</h3>
-        <p style="color: #555; line-height: 1.5; font-size: 0.95rem;">{{ proyecto['descripcion'] }}</p>
-        
-        <div class="progress-section" style="margin-top: 1rem">
-          <div class="progress-bar" style="background: #e9ecef; border-radius: 10px; height: 12px;">
-            <div class="progress" style="width: 0%; background: #4a4ae1; color: white; font-size: 10px; text-align: center; border-radius: 10px;">0%</div>
-          </div>
-        </div>
-
-        <p style="margin-top: 0.8rem; font-size: 0.85rem; color: #666;">
-          <strong>Meta:</strong> <span style="color: #28a745;">${{ "{:,.0f}".format(proyecto['meta']) }} COP</span> | 
-          <strong>Categoría:</strong> {{ proyecto['categoria']|capitalize }}
+        <h2>Proyectos Disponibles para Apoyar</h2>
+        <p style="color: #666; margin-bottom: 2rem">
+            Acá podés explorar los proyectos de grado que están buscando financiamiento. Cada uno tiene su meta y vas viendo el progreso en tiempo real.
         </p>
-      </div>
 
-      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 15px;">
-        <a href="{{ url_for('static', filename='uploads/' + proyecto['archivo_ruta']) }}" 
-           target="_blank" class="btn-user" style="text-decoration: none; padding: 8px 16px; font-size: 0.85rem; border-radius: 5px;">
-           📄 Ver Documento
-        </a>
+        <ul class="project-list" style="list-style: none; padding: 0;">
+            {% for proyecto in proyectos %}
+            <li style="display: flex; gap: 20px; align-items: stretch; margin-bottom: 2rem; border-bottom: 1px solid #eee; padding-bottom: 1.5rem; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                
+                <div class="project-image" style="flex: 1; max-width: 280px;">
+                    <img src="{{ url_for('static', filename='uploads/' + proyecto['imagen_ruta']) }}" 
+                         alt="{{ proyecto['nombre'] }}" 
+                         style="width: 100%; border-radius: 8px; height: 100%; min-height: 180px; object-fit: cover;">
+                </div>
 
-        <div class="stars" style="color: #ffca08; font-size: 1.1rem; text-align: right;">
-          <span class="filled">★</span><span class="filled">★</span><span class="filled">★</span><span class="filled">★</span><span style="color: #ccc;">☆</span>
-          <div style="font-size: 0.65rem; color: #999; margin-top: 2px;">Valoración</div>
-        </div>
-      </div>
+                <div class="project-info" style="flex: 2; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <h3 style="margin-top: 0; color: #333;">🌐 {{ proyecto['nombre'] }}</h3>
+                        <p style="color: #555; line-height: 1.5; font-size: 0.95rem;">{{ proyecto['descripcion'] }}</p>
+                        
+                        <div style="background: #f8f9fa; padding: 10px; border-radius: 8px; margin-top: 10px; border-left: 4px solid #4a4ae1;">
+                            <h4 style="margin: 0 0 5px 0; font-size: 0.85rem; color: #333;">📢 Muro de Avances:</h4>
+                            <div style="max-height: 80px; overflow-y: auto;">
+                                {% if proyecto['lista_avances'] %}
+                                    {% for avance in proyecto['lista_avances'] %}
+                                        <p style="font-size: 0.8rem; color: #444; margin: 0;">- {{ avance['mensaje'] }}</p>
+                                    {% endfor %}
+                                {% else %}
+                                    <p style="font-size: 0.8rem; color: #999; font-style: italic; margin: 0;">Sin actualizaciones.</p>
+                                {% endif %}
+                            </div>
 
-    </div>
-  </li>
-  {% else %}
-  <li style="text-align: center; list-style: none; padding: 40px; color: #888;">
-    <p>Aún no hay proyectos publicados.</p>
-  </li>
-  {% endfor %}
-</ul>
+                            {% if session.usuario %}
+                            <form action="/publicar_avance/{{ proyecto['id'] }}" method="POST" style="margin-top: 10px; display: flex; gap: 5px;">
+                                <input type="text" name="mensaje" placeholder="Contar avance..." required 
+                                       style="flex: 1; padding: 5px; font-size: 0.75rem; border: 1px solid #ddd; border-radius: 4px;">
+                                <button type="submit" style="background: #4a4ae1; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">Postear</button>
+                            </form>
+                            {% endif %}
+                        </div>
+
+                        <div class="progress-section" style="margin-top: 1rem">
+                            <div class="progress-bar" style="background: #e9ecef; border-radius: 10px; height: 12px; position: relative;">
+                                {% set porcentaje = (proyecto['acumulado'] / proyecto['meta'] * 100) if proyecto['meta'] > 0 else 0 %}
+                                <div class="progress" style="width: {{ porcentaje }}%; background: #4a4ae1; color: white; font-size: 10px; text-align: center; border-radius: 10px; transition: width 0.5s ease-in-out;">
+                                    {{ "{:.1f}".format(porcentaje) }}%
+                                </div>
+                            </div>
+                        </div>
+
+                        <p style="margin-top: 0.8rem; font-size: 0.85rem; color: #666;">
+                            <strong>Meta:</strong> <span style="color: #28a745;">${{ "{:,.0f}".format(proyecto['meta']) }} COP</span> | 
+                            <strong>Categoría:</strong> {{ proyecto['categoria']|capitalize }}
+                        </p>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 15px;">
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <form action="/donar/{{ proyecto['id'] }}" method="POST" style="display: flex; gap: 5px;">
+                                <input type="number" name="monto" placeholder="Monto $" required 
+                                       style="width: 90px; padding: 5px; border-radius: 5px; border: 1px solid #ccc; font-size: 0.8rem;">
+                                <button type="submit" class="btn-user" style="background: #28a745; border: none; padding: 5px 12px; font-size: 0.8rem; cursor: pointer; color: white;">💰 Apoyar</button>
+                            </form>
+                            <a href="{{ url_for('static', filename='uploads/' + proyecto['archivo_ruta']) }}" target="_blank" class="btn-user" style="text-decoration: none; padding: 5px 12px; font-size: 0.8rem; border-radius: 5px; text-align: center;">📄 Ver PDF</a>
+                        </div>
+
+                        <div class="stars" style="color: #ffca08; font-size: 1.1rem; text-align: right;">
+                            <span class="filled">★</span><span class="filled">★</span><span class="filled">★</span><span class="filled">★</span><span style="color: #ccc;">☆</span>
+                            <div style="font-size: 0.65rem; color: #999; margin-top: 2px;">Valoración</div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
     </div>
 
     <footer>
-      &copy; 2026 FOUNAD - Plataforma de Crowdfunding Educativo | Desarrollado
-      por Daniel Grisales
+        &copy; 2026 FOUNAD - Plataforma de Crowdfunding Educativo | Desarrollado por Daniel Grisales
     </footer>
-
     <script src="{{ url_for('static', filename='js/founad.js') }}"></script>
-  </body>
-</html>
+</body>
+</html>s
