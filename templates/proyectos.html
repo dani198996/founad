@@ -50,7 +50,15 @@
                 <div class="project-image" style="flex: 1; max-width: 280px;">
                     <img src="{{ url_for('static', filename='uploads/' + proyecto['imagen_ruta']) }}" 
                          alt="{{ proyecto['nombre'] }}" 
-                         style="width: 100%; border-radius: 8px; height: 100%; min-height: 180px; object-fit: cover;">
+                         style="width: 100%; border-radius: 8px; height: 200px; object-fit: cover;">
+                    
+                    {% if session.usuario == proyecto['nombre_usuario_creador'] or session.usuario == 'admin' %}
+                    <div style="margin-top: 10px; display: flex; gap: 15px; justify-content: center;">
+                        <a href="/editar_proyecto/{{ proyecto['id'] }}" style="text-decoration: none; font-size: 0.9rem; color: #4a4ae1;">✏️ Editar</a>
+                        <a href="/eliminar_proyecto/{{ proyecto['id'] }}" style="text-decoration: none; font-size: 0.9rem; color: #dc3545;" 
+                           onclick="return confirm('¿Estás seguro de que deseas eliminar este proyecto?')">🗑️ Eliminar</a>
+                    </div>
+                    {% endif %}
                 </div>
 
                 <div class="project-info" style="flex: 2; display: flex; flex-direction: column; justify-content: space-between;">
@@ -80,12 +88,13 @@
                         </div>
 
                         <div class="progress-section" style="margin-top: 1rem">
-                            <div class="progress-bar" style="background: #e9ecef; border-radius: 10px; height: 12px; position: relative;">
+                            <div class="progress-bar" style="background: #e9ecef; border-radius: 10px; height: 12px; position: relative; overflow: hidden;">
                                 {% set porcentaje = (proyecto['acumulado'] / proyecto['meta'] * 100) if proyecto['meta'] > 0 else 0 %}
-                                <div class="progress" style="width: {{ porcentaje }}%; background: #4a4ae1; color: white; font-size: 10px; text-align: center; border-radius: 10px; transition: width 0.5s ease-in-out;">
-                                    {{ "{:.1f}".format(porcentaje) }}%
-                                </div>
+                                <div class="progress" style="width: {{ porcentaje }}%; background: #4a4ae1; height: 100%; transition: width 0.5s ease-in-out;"></div>
                             </div>
+                            <p style="font-size: 0.8rem; margin-top: 5px; color: #4a4ae1; font-weight: bold;">
+                                {{ "{:.1f}".format(porcentaje) }}% completado
+                            </p>
                         </div>
 
                         <p style="margin-top: 0.8rem; font-size: 0.85rem; color: #666;">
@@ -99,16 +108,19 @@
                             <form action="/donar/{{ proyecto['id'] }}" method="POST" style="display: flex; gap: 5px;">
                                 <input type="number" name="monto" placeholder="Monto $" required 
                                        style="width: 90px; padding: 5px; border-radius: 5px; border: 1px solid #ccc; font-size: 0.8rem;">
-                                <button type="submit" class="btn-user" style="background: #28a745; border: none; padding: 5px 12px; font-size: 0.8rem; cursor: pointer; color: white;">💰 Apoyar</button>
+                                <button type="submit" class="btn-user" style="background: #28a745; border: none; padding: 5px 12px; font-size: 0.8rem; cursor: pointer; color: white; border-radius: 5px;">💰 Apoyar</button>
                             </form>
-                            <a href="{{ url_for('static', filename='uploads/' + proyecto['archivo_ruta']) }}" target="_blank" class="btn-user" style="text-decoration: none; padding: 5px 12px; font-size: 0.8rem; border-radius: 5px; text-align: center;">📄 Ver PDF</a>
+                            <a href="{{ url_for('static', filename='uploads/' + proyecto['archivo_ruta']) }}" target="_blank" class="btn-user" style="text-decoration: none; padding: 5px 12px; font-size: 0.8rem; border-radius: 5px; text-align: center; background: #6c757d; color: white;">📄 Ver PDF</a>
                         </div>
 
-                        <div class="stars" style="color: #ffca08; font-size: 1.1rem; text-align: right;">
-                            <span class="filled">★</span><span class="filled">★</span><span class="filled">★</span><span class="filled">★</span><span style="color: #ccc;">☆</span>
-                            <div style="font-size: 0.65rem; color: #999; margin-top: 2px;">Valoración</div>
-                        </div>
-                    </div>
+                        <div style="text-align: right;">
+    <form action="/calificar/{{ proyecto['id'] }}" method="POST" style="display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 2px;">
+        {% for i in range(5, 0, -1) %}
+        <button type="submit" name="estrellas" value="{{ i }}" style="background: none; border: none; cursor: pointer; color: {% if proyecto['promedio_estrellas'] >= i %}#ffca08{% else %}#ccc{% endif %}; font-size: 1.2rem;">★</button>
+        {% endfor %}
+    </form>
+    <div style="font-size: 0.65rem; color: #999;">Rating: {{ "{:.1f}".format(proyecto['promedio_estrellas']) }} estrellas</div>
+</div>
                 </div>
             </li>
             {% endfor %}
@@ -120,4 +132,4 @@
     </footer>
     <script src="{{ url_for('static', filename='js/founad.js') }}"></script>
 </body>
-</html>s
+</html>

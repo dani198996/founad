@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Proyecto - FOUNAD</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/founad.css') }}">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="title-container">
+                <h1>FOUNAD</h1>
+                <p>Panel de Edición de Proyecto</p>
+            </div>
+            <div class="user-actions">
+                <a href="/proyectos" class="btn-user">Volver a Proyectos</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <section class="form-section">
+            <h2>Editar: {{ proyecto['nombre'] }}</h2>
+            <p>Modifica los campos necesarios para actualizar tu proyecto de grado.</p>
+
+            <form action="/editar_proyecto/{{ proyecto['id'] }}" method="POST" class="upload-form">
+                <label for="nombre">Nombre del Proyecto:</label>
+                <input type="text" id="nombre" name="nombre" value="{{ proyecto['nombre'] }}" required>
+
+                <label for="descripcion">Descripción:</label>
+                <textarea id="descripcion" name="descripcion" rows="5" required>{{ proyecto['descripcion'] }}</textarea>
+
+                <label for="meta">Meta de Financiamiento (COP):</label>
+                <input type="number" id="meta" name="meta" value="{{ proyecto['meta'] }}" required>
+
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button type="submit" class="btn" style="background: #28a745; flex: 1;">Guardar Cambios</button>
+                    <a href="/proyectos" class="btn" style="background: #dc3545; text-decoration: none; text-align: center; flex: 1;">Cancelar</a>
+                </div>
+            </form>
+        </section>
+    </div>
+
+    <footer>
+        &copy; 2026 FOUNAD - Ingeniería de Sistemas
+    </footer>
+</body>
+</html>

@@ -1,243 +1,212 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
+import os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = 'clave_secreta'
+
+# Configuración de carpetas para archivos
+UPLOAD_FOLDER = 'static/uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Crear la carpeta de subidas si no existe
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
 # --- CONTROLADOR DE CONEXIÓN ---
 def get_db_connection():
-    """ 
-    Establece el enlace técnico con SQLite. 
-    Se utiliza row_factory para mapear las columnas por nombre.
-    """
     conexion = sqlite3.connect('founad.db')
     conexion.row_factory = sqlite3.Row
     return conexion
 
-# --- RUTAS DE NAVEGACIÓN (VISTAS) ---
+# --- RUTAS DE NAVEGACIÓN Y USUARIOS ---
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/registro')
+@app.route('/registro', methods=['GET', 'POST'])
 def registro():
-    """Renderiza el módulo de registro de nuevos perfiles."""
-    # Esta línea le dice a Flask que busque el archivo físico en /templates
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        email = request.form['email']
+        password = request.form['password']
+        rol = request.form['rol']
+        try:
+            db = get_db_connection()
+            db.execute('INSERT INTO usuarios (nombre, email, password, rol) VALUES (?, ?, ?, ?)',
+                       (nombre, email, password, rol))
+            db.commit()
+            db.close()
+            return redirect(url_for('login'))
+        except sqlite3.IntegrityError:
+            return "El correo ya está registrado. <a href='/registro'>Intentar de nuevo</a>"
     return render_template('registro.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        db = get_db_connection()
+        usuario = db.execute('SELECT * FROM usuarios WHERE email = ?', (email,)).fetchone()
+        db.close()
+        if usuario and usuario['password'] == password:
+            session['usuario'] = usuario['nombre']
+            return redirect(url_for('index'))
+        return "Credenciales incorrectas. <a href='/login'>Volver a intentar</a>"
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('usuario', None)
+    return redirect(url_for('index'))
+
+# --- GESTIÓN DE PROYECTOS (CRUD) ---
 
 @app.route('/proyectos')
 def proyectos():
-    # Usamos la función de conexión que ya tienes definida arriba
     db = get_db_connection()
-    cursor = db.cursor()
     
-    # 1. Traemos los proyectos con su acumulado de donaciones
+    # 1. Consulta principal (Subconsultas para evitar que desaparezcan proyectos)
     query = '''
-    SELECT p.*, IFNULL(SUM(d.monto), 0) as acumulado
+    SELECT p.*, 
+           u.nombre as nombre_usuario_creador,
+           (SELECT IFNULL(SUM(monto), 0) FROM donaciones WHERE id_proyecto = p.id) as acumulado,
+           (SELECT IFNULL(AVG(estrellas), 0) FROM calificaciones WHERE id_proyecto = p.id) as promedio_estrellas
     FROM proyectos p
-    LEFT JOIN donaciones d ON p.id = d.id_proyecto
-    GROUP BY p.id
+    LEFT JOIN usuarios u ON p.id_usuario = u.id
+    ORDER BY p.id DESC
     '''
-    proyectos_data = cursor.execute(query).fetchall()
-
-    # 2. PROCESAMIENTO CRÍTICO: Creamos la lista que espera el HTML
+    proyectos_data = db.execute(query).fetchall()
+    
     lista_final = []
     for p in proyectos_data:
-        # Convertimos el objeto Row a un diccionario para poder agregarle datos
         proyecto_dict = dict(p)
         
-        # Buscamos los avances específicos de este proyecto
-        avances = cursor.execute('''
+        # 2. AQUÍ ESTABA EL ERROR: Usamos p['id'] para filtrar los avances
+        avances = db.execute('''
             SELECT mensaje, fecha 
             FROM avances 
             WHERE id_proyecto = ? 
             ORDER BY fecha DESC
         ''', (p['id'],)).fetchall()
         
-        # Guardamos la lista de avances dentro del diccionario del proyecto
-        # Esto es lo que el HTML lee como proyecto['lista_avances']
         proyecto_dict['lista_avances'] = avances
-        
         lista_final.append(proyecto_dict)
-
+        
     db.close()
-    
-    # IMPORTANTE: Enviamos lista_final al template
     return render_template('proyectos.html', proyectos=lista_final)
-    db.close()
-    return render_template('proyectos.html', proyectos=proyectos_lista)
-    
 
 @app.route('/sube')
 def sube():
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
     return render_template('sube.html')
-@app.route('/login', methods=['GET', 'POST'])
-def login():
+
+@app.route('/subir_proyecto', methods=['POST'])
+def subir_proyecto():
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+
+    nombre = request.form['nombre']
+    descripcion = request.form['descripcion']
+    categoria = request.form['categoria']
+    meta = request.form['meta']
+    fecha_limite = request.form['fecha_limite']
+    video_url = request.form.get('video', '')
+
+    foto = request.files['imagen']
+    archivo = request.files['archivo']
+    foto_filename = secure_filename(foto.filename)
+    archivo_filename = secure_filename(archivo.filename)
+
+    foto.save(os.path.join(app.config['UPLOAD_FOLDER'], foto_filename))
+    archivo.save(os.path.join(app.config['UPLOAD_FOLDER'], archivo_filename))
+
+    db = get_db_connection()
+    user = db.execute('SELECT id FROM usuarios WHERE nombre = ?', (session['usuario'],)).fetchone()
+    if user:
+        db.execute('''
+            INSERT INTO proyectos (nombre, descripcion, categoria, meta, fecha_limite, archivo_ruta, imagen_ruta, video_url, id_usuario)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (nombre, descripcion, categoria, meta, fecha_limite, archivo_filename, foto_filename, video_url, user['id']))
+        db.commit()
+    db.close()
+    return redirect(url_for('proyectos'))
+
+@app.route('/editar_proyecto/<int:id>', methods=['GET', 'POST'])
+def editar_proyecto(id):
+    db = get_db_connection()
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-
-        db = get_db_connection()
-        cursor = db.cursor()
-
-        cursor.execute('SELECT * FROM usuarios WHERE email = ?', (email,))
-        usuario = cursor.fetchone()
-
+        nombre = request.form['nombre']
+        descripcion = request.form['descripcion']
+        meta = request.form['meta']
+        db.execute('UPDATE proyectos SET nombre=?, descripcion=?, meta=? WHERE id=?', (nombre, descripcion, meta, id))
+        db.commit()
         db.close()
+        return redirect(url_for('proyectos'))
+    
+    proyecto = db.execute('SELECT * FROM proyectos WHERE id = ?', (id,)).fetchone()
+    db.close()
+    return render_template('editar.html', proyecto=proyecto)
 
-        if usuario:
-            if usuario['password'] == password:
-                session['usuario'] = usuario['nombre']
-            
-                return redirect('/')
-            else:
-                return "Contraseña incorrecta ❌"
-        else:
-            return "Usuario no encontrado ❌"
+@app.route('/eliminar_proyecto/<int:id>')
+def eliminar_proyecto(id):
+    db = get_db_connection()
+    db.execute('DELETE FROM proyectos WHERE id = ?', (id,))
+    db.commit()
+    db.close()
+    return redirect(url_for('proyectos'))
 
-    return render_template('login.html')
+# --- DONACIONES Y AVANCES ---
+
+@app.route('/donar/<int:proyecto_id>', methods=['POST'])
+def donar(proyecto_id):
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+    monto = request.form.get('monto')
+    db = get_db_connection()
+    user = db.execute('SELECT id FROM usuarios WHERE nombre = ?', (session['usuario'],)).fetchone()
+    if user:
+        db.execute('INSERT INTO donaciones (id_proyecto, id_usuario, monto) VALUES (?, ?, ?)',
+                   (proyecto_id, user['id'], monto))
+        db.commit()
+    db.close()
+    return redirect(url_for('proyectos'))
+
+@app.route('/publicar_avance/<int:proyecto_id>', methods=['POST'])
+def publicar_avance(proyecto_id):
+    mensaje = request.form.get('mensaje')
+    db = get_db_connection()
+    db.execute('INSERT INTO avances (id_proyecto, mensaje) VALUES (?, ?)', (proyecto_id, mensaje))
+    db.commit()
+    db.close()
+    return redirect(url_for('proyectos'))
 
 @app.route('/contacto')
 def contacto():
     return render_template('contacto.html')
 
-# --- LÓGICA DE NEGOCIO / PROCESAMIENTO ---
-@app.route('/registrar_usuario', methods=['POST'])
-def registrar_usuario():
-    """
-    Gestiona la persistencia de datos del formulario de registro.
-    Aplica sentencias preparadas para mitigar riesgos de seguridad.
-    """
-    if request.method == 'POST':
-        # Captura de parámetros desde el objeto request
-        nombre = request.form['nombre']
-        email = request.form['email']
-        password = request.form['password']
-        rol = request.form['rol']
 
-        try:
-            # Apertura de sesión en la base de datos
-            db = get_db_connection()
-            cursor = db.cursor()
-            
-            # Operación DML (Data Manipulation Language)
-            cursor.execute('''
-                INSERT INTO usuarios (nombre, email, password, rol)
-                VALUES (?, ?, ?, ?)
-            ''', (nombre, email, password, rol))
-            
-            db.commit() # Consolidación de la transacción
-            db.close()
-            
-            # Confirmación de proceso exitoso
-            return "Registro exitoso. <a href='/'>Regresar al inicio</a>"
-            
-        except sqlite3.IntegrityError:
-            # Manejo de excepción para correos duplicados (campo UNIQUE)
-            return "Error: El correo ingresado ya se encuentra en nuestro sistema."
-        except Exception as e:
-            # Captura de errores genéricos para depuración
-            return f"Error técnico detectado: {e}"
-        
-@app.route('/logout')
-def logout():
-    # Eliminamos el dato del usuario de la sesión
-    session.pop('usuario', None)
-    # Lo redirigimos a la página de inicio
-    return redirect(url_for('index'))
-
-
-import os
-from werkzeug.utils import secure_filename
-
-# Configuración de carpetas para archivos
-UPLOAD_FOLDER = 'static/uploads'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-@app.route('/subir_proyecto', methods=['POST'])
-def subir_proyecto():
-    if request.method == 'POST':
-        # Capturamos los datos del formulario
-        nombre = request.form['nombre']
-        descripcion = request.form['descripcion']
-        categoria = request.form['categoria']
-        meta = request.form['meta']
-        fecha_limite = request.form['fecha_limite']
-        video_url = request.form.get('video', '')
-
-        # Manejo de archivos (Imagen y PDF)
-        foto = request.files['imagen']
-        archivo = request.files['archivo']
-
-        foto_filename = secure_filename(foto.filename)
-        archivo_filename = secure_filename(archivo.filename)
-
-        # Guardamos los archivos físicamente
-        foto.save(os.path.join(app.config['UPLOAD_FOLDER'], foto_filename))
-        archivo.save(os.path.join(app.config['UPLOAD_FOLDER'], archivo_filename))
-
-        # Guardamos la información en la base de datos
-        db = get_db_connection()
-        cursor = db.cursor()
-        cursor.execute('''
-            INSERT INTO proyectos (nombre, descripcion, categoria, meta, fecha_limite, archivo_ruta, imagen_ruta, video_url)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (nombre, descripcion, categoria, meta, fecha_limite, archivo_filename, foto_filename, video_url))
-        
+@app.route('/calificar/<int:proyecto_id>', methods=['POST'])
+def calificar(proyecto_id):
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+    
+    estrellas = request.form.get('estrellas')
+    db = get_db_connection()
+    user = db.execute('SELECT id FROM usuarios WHERE nombre = ?', (session['usuario'],)).fetchone()
+    
+    if user:
+        # Registramos la calificación del usuario
+        db.execute('INSERT INTO calificaciones (id_proyecto, id_usuario, estrellas) VALUES (?, ?, ?)',
+                   (proyecto_id, user['id'], estrellas))
         db.commit()
-        db.close()
-
-        return "¡Proyecto publicado con éxito! 🎉 <a href='/proyectos'>Ver proyectos</a>"
-        
-
-@app.route('/donar/<int:proyecto_id>', methods=['POST'])
-def donar(proyecto_id):
-    # 1. Verificar si el usuario inició sesión
-    if 'usuario' not in session:
-        return redirect(url_for('login'))
-    
-    monto = request.form.get('monto')
-    usuario_nombre = session['usuario']
-
-    try:
-        db = sqlite3.connect('founad.db')
-        cursor = db.cursor()
-        
-        # 2. Buscamos el ID del usuario que está logueado
-        cursor.execute('SELECT id FROM usuarios WHERE nombre = ?', (usuario_nombre,))
-        usuario = cursor.fetchone()
-        
-        if usuario:
-            # 3. Insertamos la donación en la tabla
-            cursor.execute('INSERT INTO donaciones (id_proyecto, id_usuario, monto) VALUES (?, ?, ?)',
-                           (proyecto_id, usuario[0], monto))
-            db.commit()
-            print(f"✅ ¡Éxito! Donación de {monto} para el proyecto ID {proyecto_id}")
-        
-        db.close()
-    except Exception as e:
-        print(f"❌ Error en la base de datos: {e}")
-    
-    # 4. Volvemos a la lista de proyectos para ver el cambio
-    return redirect(url_for('proyectos'))
-
-
-@app.route('/publicar_avance/<int:proyecto_id>', methods=['POST'])
-def publicar_avance(proyecto_id):
-    if 'usuario' not in session:
-        return redirect(url_for('login'))
-    
-    mensaje = request.form.get('mensaje')
-    
-    db = sqlite3.connect('founad.db')
-    db.execute('INSERT INTO avances (id_proyecto, mensaje) VALUES (?, ?)', (proyecto_id, mensaje))
-    db.commit()
     db.close()
-    
     return redirect(url_for('proyectos'))
-        
-        
-        
+
 
 if __name__ == '__main__':
-    # Ejecución del servidor en el puerto 5001 según configuración previa
     app.run(debug=True, port=5001)
